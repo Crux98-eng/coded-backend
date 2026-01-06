@@ -1,0 +1,21 @@
+{
+  "name": "backend-coded-mind",
+  "version": "1.0.0",
+  "description": "a learning site backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon server.js"
+  },
+  "author": "eric",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.6.0",
+    "mongoose": "^8.0.0",
+    "nodemailer": "^7.0.12",
+    "nodemon": "^3.1.11"
+  }
+}
