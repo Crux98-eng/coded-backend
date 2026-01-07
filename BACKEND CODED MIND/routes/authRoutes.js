@@ -52,8 +52,6 @@ try{
 
 
 
-
-
 // Login: Firebase verifies, backend checks rules
 router.post('/login', authenticate, async (req, res) => {
   try {
@@ -62,14 +60,6 @@ router.post('/login', authenticate, async (req, res) => {
     const user = await User.findOne({ uid });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (user.status === 'PENDING') {
-      return res.status(403).json({ error: 'Account pending approval' });
-    }
-
-    if (user.status === 'BLOCKED') {
-      return res.status(403).json({ error: 'Account blocked' });
     }
 
     // ACTIVE: allow access
@@ -97,6 +87,11 @@ router.post('/approve/:uid', async (req, res) => {
     await user.save();
 
     res.json({ message: 'User approved', user });
+    sendApprovalEmail(
+      user.email,
+      'Your account has been approved',
+      `Dear ${user.name},\n\nYour account has been approved. You can now log in and access our services.\n\nThank you.`
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

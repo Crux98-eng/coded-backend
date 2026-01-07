@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
-
+const userRoutes = require('./routes/userRoutes');
 dotenv.config();
 
 console.log('GOOGLE_APP_PASSWORD loaded:', process.env.GOOGLE_APP_PASSWORD ? 'Yes' : 'No');
@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend for Coded Mind - REGISTER -> APPROVE -> LOGIN flow');
