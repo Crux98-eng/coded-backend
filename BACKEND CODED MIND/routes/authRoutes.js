@@ -74,7 +74,7 @@ router.post('/approve/:uid', async (req, res) => {
   // In production, add admin authentication here
   try {
     const { uid } = req.params;
-    const { subscription } = req.body; // e.g., 'basic'
+    const { subscription } = req.body; 
 
     const user = await User.findOne({ uid });
     if (!user) {

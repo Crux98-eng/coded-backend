@@ -1,19 +1,29 @@
 const Lesson = require('../models/Lesson');
 const cloud = require('../services/cloudinary');
+const streamifier = require('streamifier');
+
 
 exports.createLesson = async (req, res) => {
   try {
-    // Expect multipart/form-data with field 'file' (video) and other metadata in body
-    if (!req.file) return res.status(400).json({ error: 'Video file is required (field: file)' });
+    //  Validate file
+    if (!req.file) {
+      return res.status(400).json({ error: 'Video file is required (field: file)' });
+    }
 
-    // Build data URI from buffer
-    const mime = req.file.mimetype || 'video/mp4';
-    const dataUri = `data:${mime};base64,${req.file.buffer.toString('base64')}`;
+    //  Upload video via stream (safe for large files)
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: 'video' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
 
-    // Upload video to Cloudinary (resource_type: video)
-    const uploadResult = await cloud.uploadDataUri(dataUri, { resource_type: 'video' });
-//the cloudinary will return some metadata then we combine withe the data from the body
-//and create the payload to save to ouur mongodb
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+
+    //  Build payload
     const payload = {
       courseId: req.body.courseId,
       moduleId: req.body.moduleId,
@@ -22,17 +32,23 @@ exports.createLesson = async (req, res) => {
       videoUrl: uploadResult.secure_url,
       videoPublicId: uploadResult.public_id,
       duration: uploadResult.duration || 0,
-      order: req.body.order || 0,
+      order: Number(req.body.order) || 0,
       isPreview: req.body.isPreview === 'true' || req.body.isPreview === true,
       isPublished: req.body.isPublished === 'true' || req.body.isPublished === true,
     };
 
+    //  Save to MongoDB
     const lesson = await Lesson.create(payload);
+
     return res.status(201).json(lesson);
+
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    console.error('Error uploading lesson:', err);
+    return res.status(500).json({ error: err.message || 'Failed to create lesson' });
   }
 };
+
+
 
 exports.listLessons = async (req, res) => {
   try {

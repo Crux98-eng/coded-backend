@@ -27,7 +27,15 @@ exports.getCourse = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
-
+exports.getAllcourses = async(req,res)=>{
+  try {
+    const courses =  await Course.find().lean();
+    return res.status(200).json(courses);
+    
+  } catch (error) {
+    return res.status(500).json({ error: err.message });
+  }
+}
 exports.updateCourse = async (req, res) => {
   try {
     const allowed = (({ title, description, category, level, thumbnailUrl, price, isPublished }) => 
