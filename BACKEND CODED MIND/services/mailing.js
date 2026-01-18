@@ -29,10 +29,10 @@ exports.sendApprovalEmail = async (fr, subject, text, phone) => {
     })
 }
 
-exports.sendVerificationEmail = async (to, subject, text) => {
+exports.sendVerificationEmail = async (userEmail, subject, text) => {
 await transporter.sendMail({
     from: transporter.options.auth.user,
-    to,
+    to:userEmail,
     subject,
     text,
 })

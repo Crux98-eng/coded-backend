@@ -43,7 +43,7 @@ exports.createLesson = async (req, res) => {
     return res.status(201).json(lesson);
 
   } catch (err) {
-    console.error('Error uploading lesson:', err);
+   // console.error('Error uploading lesson:', err);
     return res.status(500).json({ error: err.message || 'Failed to create lesson' });
   }
 };

@@ -10,7 +10,7 @@ const lessonsRoutes = require('./routes/lessons');
 const materialsRoutes = require('./routes/materials');
 dotenv.config();
 
-console.log('GOOGLE_APP_PASSWORD loaded:', process.env.GOOGLE_APP_PASSWORD ? 'Yes' : 'No');
+//console.log('GOOGLE_APP_PASSWORD loaded:', process.env.GOOGLE_APP_PASSWORD ? 'Yes' : 'No');
 
 const app = express();
 const port = process.env.PORT ;
@@ -21,7 +21,7 @@ app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI).then(() => {
-  console.log('Connected to MongoDB');
+  //console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('MongoDB connection error:', err);
 });
