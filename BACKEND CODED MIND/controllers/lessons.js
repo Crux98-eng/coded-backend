@@ -1,5 +1,6 @@
 const Lesson = require('../models/Lesson');
-const cloud = require('../services/cloudinary');
+const { cloudinary } = require('../services/cloudinary');
+
 const streamifier = require('streamifier');
 
 
@@ -22,6 +23,12 @@ exports.createLesson = async (req, res) => {
 
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
+    const newUrl = cloudinary.url(uploadResult.public_id, {
+  resource_type: 'video',
+  format: 'm3u8',
+  streaming_profile: 'hd'
+});
+
 
     //  Build payload
     const payload = {
@@ -29,7 +36,7 @@ exports.createLesson = async (req, res) => {
       moduleId: req.body.moduleId,
       title: req.body.title,
       description: req.body.description || '',
-      videoUrl: uploadResult.secure_url,
+      videoUrl: newUrl,
       videoPublicId: uploadResult.public_id,
       duration: uploadResult.duration || 0,
       order: Number(req.body.order) || 0,
@@ -43,7 +50,7 @@ exports.createLesson = async (req, res) => {
     return res.status(201).json(lesson);
 
   } catch (err) {
-   // console.error('Error uploading lesson:', err);
+   console.log('Error uploading lesson:', err);
     return res.status(500).json({ error: err.message || 'Failed to create lesson' });
   }
 };

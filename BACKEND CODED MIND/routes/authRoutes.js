@@ -88,7 +88,7 @@ router.post('/approve/:uid', async (req, res) => {
 
     res.json({ message: 'User approved', user });
     sendApprovalEmail(
-      user.email,
+      userEmail=user.email,
       'Your account has been approved',
       `Dear ${user.name},\n\nYour account has been approved. You can now log in and access our services.\n\nThank you.`
     );
