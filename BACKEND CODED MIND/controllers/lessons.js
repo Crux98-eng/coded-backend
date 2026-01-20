@@ -26,8 +26,13 @@ exports.createLesson = async (req, res) => {
     const newUrl = cloudinary.url(uploadResult.public_id, {
   resource_type: 'video',
   format: 'm3u8',
-  streaming_profile: 'hd'
-});
+  streaming_profile: 'hd',
+ secure: true
+}
+
+
+
+);
 
 
     //  Build payload
