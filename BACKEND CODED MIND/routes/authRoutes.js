@@ -3,7 +3,8 @@ const router = express.Router();
 const User = require('../models/User');
 const { authenticate } = require('../middleware/auth');
 const { sendApprovalEmail } = require('../services/mailing');
-
+const {sendEmailUsingResend} = require('../services/mailing');
+const {sendUserEmail} = require('../services/mailing');
 
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
@@ -34,20 +35,9 @@ try{
   }
 
   // Send approval email after response
-  try {
+ sendEmailUsingResend(email, `Name: ${name}\nEmail: ${email}\nPhone: ${phone}`);
   
-    if (res.statusCode === 201) {
-        console.log("snending this email  =====>", phone);
-      await sendApprovalEmail(
-        email,
-        'requesting for the account approval',
-        `Dear CODED MIND INC, \n\n ${name} is requesting for account approval. Please review and approve the account to enable access to our services.\n\nThank you.`,
-        phone
-      );
-    }
-  } catch (emailError) {
-    console.error('Email sending error:', emailError.message);
-  }
+  
 });
 
 
@@ -87,15 +77,12 @@ router.post('/approve/:uid', async (req, res) => {
     await user.save();
 
     res.json({ message: 'User approved', user });
-    sendApprovalEmail(
-      userEmail=user.email,
-      'Your account has been approved',
-      `Dear ${user.name},\n\nYour account has been approved. You can now log in and access our services.\n\nThank you.`
-    );
+    sendUserEmail(user.email);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Get user profile
 router.get('/profile', authenticate, async (req, res) => {
