@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 //create a resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
 //function to send email using resend
-exports.sendEmailUsingResend = async (userEmail, userhtml) => {
+export const sendEmailUsingResend = async (userEmail, userhtml) => {
 
     try {
         await resend.emails.send({
@@ -18,7 +18,7 @@ exports.sendEmailUsingResend = async (userEmail, userhtml) => {
     }
 };
 
-exports.sendUserEmail = async (userEmail) => {
+export const sendUserEmail = async (userEmail) => {
 
     try {
         await resend.emails.send({
