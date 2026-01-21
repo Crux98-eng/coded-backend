@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticate } = require('../middleware/auth');
-const { sendApprovalEmail } = require('../services/mailing');
 const {sendEmailUsingResend} = require('../services/mailing');
 const {sendUserEmail} = require('../services/mailing');
 
