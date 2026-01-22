@@ -1,64 +1,3 @@
-// const Lesson = require('../models/Lesson');
-// const { cloudinary } = require('../services/cloudinary');
-
-// const streamifier = require('streamifier');
-
-
-// exports.createLesson = async (req, res) => {
-//   try {
-//     //  Validate file
-//     if (!req.file) {
-//       return res.status(400).json({ error: 'Video file is required (field: file)' });
-//     }
-
-//     //  Upload video via stream (safe for large files)
-//     const uploadResult = await new Promise((resolve, reject) => {
-//       const stream = cloudinary.uploader.upload_stream(
-//         { resource_type: 'video' },
-//         (error, result) => {
-//           if (error) return reject(error);
-//           resolve(result);
-//         }
-//       );
-
-//       streamifier.createReadStream(req.file.buffer).pipe(stream);
-//     });
-//     const newUrl = cloudinary.url(uploadResult.public_id, {
-//   resource_type: 'video',
-//   format: 'm3u8',
-//   streaming_profile: 'hd',
-//  secure: true
-// }
-
-
-
-// );
-
-
-//     //  Build payload
-//     const payload = {
-//       courseId: req.body.courseId,
-//       moduleId: req.body.moduleId,
-//       title: req.body.title,
-//       description: req.body.description || '',
-//       videoUrl: newUrl,
-//       videoPublicId: uploadResult.public_id,
-//       duration: uploadResult.duration || 0,
-//       order: Number(req.body.order) || 0,
-//       isPreview: req.body.isPreview === 'true' || req.body.isPreview === true,
-//       isPublished: req.body.isPublished === 'true' || req.body.isPublished === true,
-//     };
-
-//     //  Save to MongoDB
-//     const lesson = await Lesson.create(payload);
-
-//     return res.status(201).json(lesson);
-
-//   } catch (err) {
-//    console.log('Error uploading lesson:', err);
-//     return res.status(500).json({ error: err.message || 'Failed to create lesson' });
-//   }
-// };
 
 const Lesson = require('../models/Lesson');
 const { cloudinary } = require('../services/cloudinary');
@@ -70,13 +9,27 @@ exports.createLesson = async (req, res) => {
       return res.status(400).json({ error: 'Video file is required (field: file)' });
     }
 
-    // 1️ Upload video ONLY (no format tricks)
+    // 1️⃣ Upload + generate HLS at upload-time
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           resource_type: 'video',
           folder: 'lessons',
-          chunk_size: 6_000_000, // helps with large files
+          chunk_size: 6_000_000,
+
+          // 🔥 PRE-GENERATE STREAMING
+          eager: [
+            {
+              format: 'm3u8',
+              transformation: [
+                { streaming_profile: 'hd' }
+              ]
+            }
+          ],
+          eager_async: true,
+
+          // optional but HIGHLY recommended
+          eager_notification_url: `${process.env.BASE_URL}/cloudinary/notify`
         },
         (error, result) => {
           if (error) return reject(error);
@@ -87,28 +40,30 @@ exports.createLesson = async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
 
-    // 2️ Build HLS URL SAFELY (delivery-time)
-    const hlsUrl = cloudinary.url(uploadResult.public_id, {
-      resource_type: 'video',
-      flags: 'hls',
-      secure: true,
-    });
+    // 2️⃣ Extract HLS URL safely
+    const hlsUrl =
+      uploadResult.eager?.[0]?.secure_url ||
+      null;
 
-    // 3️ Save lesson
+    // 3️⃣ Save lesson in "processing" state
     const lesson = await Lesson.create({
       courseId: req.body.courseId,
       moduleId: req.body.moduleId,
       title: req.body.title,
       description: req.body.description || '',
-      videoUrl: hlsUrl,              // HLS URL
+      videoUrl: hlsUrl,               // ✅ REAL HLS URL
       videoPublicId: uploadResult.public_id,
       duration: uploadResult.duration || 0,
       order: Number(req.body.order) || 0,
       isPreview: req.body.isPreview === 'true' || req.body.isPreview === true,
       isPublished: req.body.isPublished === 'true' || req.body.isPublished === true,
+      status: 'processing'            // 🔑 important
     });
 
-    return res.status(201).json(lesson);
+    return res.status(201).json({
+      message: 'Lesson uploaded, video processing started',
+      lesson
+    });
 
   } catch (err) {
     console.error('Lesson upload error:', err);
