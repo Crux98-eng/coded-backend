@@ -11,5 +11,5 @@ router.get('/', ctrl.listLessons);
 router.get('/:id', ctrl.getLesson);
 router.put('/:id',  ctrl.updateLesson);
 router.delete('/:id',  ctrl.deleteLesson);
-
+router.post('/cloudinary-notify', ctrl.cloudinaryNotify);
 module.exports = router;

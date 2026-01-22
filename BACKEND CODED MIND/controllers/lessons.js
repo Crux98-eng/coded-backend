@@ -2,7 +2,7 @@
 const Lesson = require('../models/Lesson');
 const { cloudinary } = require('../services/cloudinary');
 const streamifier = require('streamifier');
-
+const BASE_URL = "https://coded-backend.onrender.com";
 exports.createLesson = async (req, res) => {
   try {
     if (!req.file) {
@@ -29,7 +29,7 @@ exports.createLesson = async (req, res) => {
           eager_async: true,
 
           // optional but HIGHLY recommended
-          eager_notification_url: `${process.env.BASE_URL}/cloudinary/notify`
+          eager_notification_url: `${BASE_URL}/lessons/cloudinary-notify`
         },
         (error, result) => {
           if (error) return reject(error);
@@ -119,5 +119,20 @@ exports.deleteLesson = async (req, res) => {
     return res.status(200).json({ message: 'Lesson deleted' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+exports.cloudinaryNotify = async (req, res) => {
+  try {
+    const { public_id } = req.body;
+
+    await Lesson.findOneAndUpdate(
+      { videoPublicId: public_id },
+      { status: 'ready' }
+    );
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Cloudinary notify error:', err);
+    res.sendStatus(500);
   }
 };
