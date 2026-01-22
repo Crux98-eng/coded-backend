@@ -9,6 +9,11 @@ const {sendUserEmail} = require('../services/mailing');
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
   const { username: name, phone } = req.body;
+  const newUser ={
+    email:email,
+    name:name,
+    phone:phone
+  }
 try{
 
   if (!name) {
@@ -34,7 +39,7 @@ try{
   }
 
   // Send approval email after response
- sendEmailUsingResend(email, `Name: ${name}\nEmail: ${email}\nPhone: ${phone}`);
+ sendEmailUsingResend(newUser);
   
   
 });
