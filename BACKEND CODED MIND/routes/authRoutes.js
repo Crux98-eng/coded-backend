@@ -27,7 +27,7 @@ try{
     }
 
     // Create user with PENDING status
-    const user = new User({ uid, email, name,phone, status: 'PENDING',plan });
+    const user = new User({ uid, email, name, phone, status: 'PENDING', subscription: plan });
     //console.log('Saving user:', user);
     await user.save();
     console.log('User saved successfully');
