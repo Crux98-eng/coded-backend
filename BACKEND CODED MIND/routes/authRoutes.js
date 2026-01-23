@@ -8,7 +8,7 @@ const {sendUserEmail} = require('../services/mailing');
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
-  const { username: name, phone } = req.body;
+  const { name, phone, plan } = req.body;
   const newUser ={
     email:email,
     name:name,
@@ -27,7 +27,7 @@ try{
     }
 
     // Create user with PENDING status
-    const user = new User({ uid, email, name, status: 'PENDING' });
+    const user = new User({ uid, email, name,phone, status: 'PENDING',plan });
     //console.log('Saving user:', user);
     await user.save();
     console.log('User saved successfully');
