@@ -1,9 +1,8 @@
 import { Resend } from 'resend';
 
 //create a resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend('re_WX8AeyG4_2HbLFkEkriMecswZkFST4vPY');
 //function to send email using resend
-
 
 export const sendAdminApprovalEmail = async (user) => {
   try {

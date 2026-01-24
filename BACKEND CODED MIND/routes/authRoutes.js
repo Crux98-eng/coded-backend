@@ -7,12 +7,13 @@ const {sendUserApprovedEmail} = require('../services/mailing');
 
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
-  const { uid, email,name, phone, plan } = req.user;
+  const { uid, email } = req.user;
+  const { username, phone, plan} = req.body;
   
   const newUser ={
-    email:email,
-    name:name,
-    phone:phone
+    email:email? email : '',
+    name:username ? username: '',
+    phone:phone? phone : '',
   }
 try{
 
@@ -31,8 +32,9 @@ try{
     //console.log('Saving user:', user);
     await user.save();
     console.log('User saved successfully');
-     sendAdminApprovalEmail(newUser);
+     
     res.status(201).json({ message: 'User registered, pending approval', user });
+    sendAdminApprovalEmail(newUser);
   } catch (error) {
     console.error('Registration error:', error.message);
     res.status(500).json({ error: error.message });
