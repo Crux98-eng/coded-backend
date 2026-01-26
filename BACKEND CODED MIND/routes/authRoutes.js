@@ -14,6 +14,7 @@ router.post('/register', authenticate, async (req, res) => {
     email:email? email : '',
     name:username ? username: '',
     phone:phone? phone : '',
+    plan:plan?plan : "Premium"
   }
 try{
 

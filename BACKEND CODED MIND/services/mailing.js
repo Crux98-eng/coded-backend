@@ -15,6 +15,7 @@ export const sendAdminApprovalEmail = async (user) => {
         <p><strong>Name:</strong> ${user.name}</p>
         <p><strong>Email:</strong> ${user.email}</p>
         <p><strong>Phone:</strong> ${user.phone}</p>
+        <p><strong>Subdcription:</strong> ${user.plan}</p>
         <p>Status: <b>Waiting Approval</b></p>
       `,
     });
