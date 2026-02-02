@@ -103,7 +103,7 @@ router.get('/profile', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-router.post('/block/:uid' ,async(req, res){
+router.post('/block/:uid' ,async(req, res)=>{
   try {
     const {uid}=req.params;
     
