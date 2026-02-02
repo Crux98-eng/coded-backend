@@ -4,7 +4,7 @@ const User = require('../models/User');
 const { authenticate } = require('../middleware/auth');
 const {sendAdminApprovalEmail} = require('../services/mailing');
 const {sendUserApprovedEmail} = require('../services/mailing');
-
+const {sendUserEmailBlocking} = require('../services/mailing')
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
@@ -103,5 +103,25 @@ router.get('/profile', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+router.post('/block/:uid' ,async(req, res){
+  try {
+    const {uid}=req.params;
+    
+    const user = await User.findOne({uid});
+    if(!user){
+      res.status(400).json({error:'user not found'})
+      return;
+    }
+    user.status='BLOCK';
+   await user.save();
+    res.json({message:'user blocked successfully', user});
+   sendUserEmailBlocking(user.email);
+    
+
+  } catch (error) {
+    console.log('there was a problem whilst blocking the user  ',error)
+    
+  }
+})
 
 module.exports = router;

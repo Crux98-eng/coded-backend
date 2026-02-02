@@ -40,3 +40,19 @@ export const sendUserApprovedEmail = async (userEmail) => {
     console.error("User email error:", error);
   }
 };
+export const sendUserEmailBlocking = async (userEmail) => {
+  try {
+    await resend.emails.send({
+      from: "HAUSHALT <onboarding@resend.dev>", // same sender
+      to: [userEmail],
+      subject: "Your Account Is Blocked 🚫",
+      html: `
+        <h2>Account Blocked</h2>
+        <p>Your account has  been blocked due to either subscription expirely or other issues.</p>
+        <p>please contact the admin to resolve the issue or resubscribe through the platform.</p>
+      `,
+    });
+  } catch (error) {
+    console.error("User email error:", error);
+  }
+};
