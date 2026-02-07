@@ -17,7 +17,7 @@ exports.createLesson = async (req, res) => {
           folder: 'lessons',
           chunk_size: 6_000_000,
 
-          // 🔥 PRE-GENERATE STREAMING
+          //  PRE-GENERATE STREAMING
           eager: [
             {
               format: 'm3u8',
@@ -51,13 +51,13 @@ exports.createLesson = async (req, res) => {
       moduleId: req.body.moduleId,
       title: req.body.title,
       description: req.body.description || '',
-      videoUrl: hlsUrl,               // ✅ REAL HLS URL
+      videoUrl: hlsUrl,               
       videoPublicId: uploadResult.public_id,
-      duration: uploadResult.duration || 0,
+      duration: (uploadResult.duration)/60 || 0,
       order: Number(req.body.order) || 0,
       isPreview: req.body.isPreview === 'true' || req.body.isPreview === true,
       isPublished: req.body.isPublished === 'true' || req.body.isPublished === true,
-      status: 'processing'            // 🔑 important
+      status: 'processing'            
     });
 
     return res.status(201).json({
