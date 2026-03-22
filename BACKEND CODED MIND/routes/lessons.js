@@ -5,7 +5,7 @@ const ctrl = require('../controllers/lessons');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Creates a Lesson document: uploads video to Cloudinary, then creates Lesson
+// Creates a Lesson document: uploads video to ImageKit, then creates Lesson
 router.post('/',  upload.single('file'), ctrl.createLesson);
 router.get('/', ctrl.listLessons);
 router.get('/:id', ctrl.getLesson);

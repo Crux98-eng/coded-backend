@@ -1,76 +1,61 @@
-
 const Lesson = require('../models/Lesson');
-const { cloudinary } = require('../services/cloudinary');
-const streamifier = require('streamifier');
-const BASE_URL = "https://coded-backend.onrender.com";
+const { uploadBuffer, deleteFile } = require('../services/imagekit');
+
 exports.createLesson = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Video file is required (field: file)' });
+      return res.status(400).json({ error: "Video file is required (field: file)" });
     }
 
-    // 1️⃣ Upload + generate HLS at upload-time
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'video',
-          folder: 'lessons',
-          chunk_size: 6_000_000,
+    // Upload video directly (NO transformation)
+    const uploadResult = await uploadBuffer(
+      req.file.buffer,
+      req.file.originalname,
+      {
+        folder: "lessons",
+        tags: ["lesson-video"],
+        useUniqueFileName: true,
+        responseFields: ["fileId", "url", "duration"]
+      }
+    );
 
-          //  PRE-GENERATE STREAMING
-          eager: [
-            {
-              format: 'm3u8',
-              transformation: [
-                { streaming_profile: 'hd' }
-              ]
-            }
-          ],
-          eager_async: true,
+    const durationSeconds =
+      uploadResult?.duration ||
+      uploadResult?.metadata?.duration ||
+      Number(req.body.duration) ||
+      0;
 
-          // optional but HIGHLY recommended
-          eager_notification_url: `${BASE_URL}/lessons/cloudinary-notify`
-        },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-
-      streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
-
-    // 2️⃣ Extract HLS URL safely
-    const hlsUrl =
-      uploadResult.eager?.[0]?.secure_url ||
-      null;
-
-    // 3️⃣ Save lesson in "processing" state
     const lesson = await Lesson.create({
       courseId: req.body.courseId,
       moduleId: req.body.moduleId,
       title: req.body.title,
-      description: req.body.description || '',
-      videoUrl: hlsUrl,               
-      videoPublicId: uploadResult.public_id,
-      duration: (uploadResult.duration)/60 || 0,
+      description: req.body.description || "",
+      videoUrl: uploadResult.url,
+      videoPublicId: uploadResult.fileId,
+      duration: durationSeconds,
       order: Number(req.body.order) || 0,
-      isPreview: req.body.isPreview === 'true' || req.body.isPreview === true,
-      isPublished: req.body.isPublished === 'true' || req.body.isPublished === true,
-      status: 'processing'            
+      isPreview: req.body.isPreview === "true" || req.body.isPreview === true,
+      isPublished: req.body.isPublished === "true" || req.body.isPublished === true,
+      status: "ready", // no conversion needed
     });
 
     return res.status(201).json({
-      message: 'Lesson uploaded, video processing started',
-      lesson
+      message: "Lesson uploaded successfully (MP4 direct)",
+      lesson,
     });
 
   } catch (err) {
-    console.error('Lesson upload error:', err);
-    return res.status(500).json({ error: 'Failed to create lesson' });
+    console.error("Lesson upload error:", err);
+
+    const status = err?.response?.statusCode;
+
+    return res.status(
+      status && status >= 400 && status < 600 ? status : 500
+    ).json({
+      error: err?.message || "Failed to create lesson",
+    });
   }
 };
-
 
 exports.listLessons = async (req, res) => {
   try {
@@ -110,11 +95,11 @@ exports.deleteLesson = async (req, res) => {
   try {
     const lesson = await Lesson.findByIdAndDelete(req.params.id);
     if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
-    // attempt to remove video from Cloudinary if public id present
+    // attempt to remove video from ImageKit if file id present
     try {
-      if (lesson.videoPublicId) await cloud.destroy(lesson.videoPublicId, { resource_type: 'video' });
+      if (lesson.videoPublicId) await deleteFile(lesson.videoPublicId);
     } catch (e) {
-      console.error('Cloudinary delete error (lesson):', e.message || e);
+      console.error('ImageKit delete error (lesson):', e.message || e);
     }
     return res.status(200).json({ message: 'Lesson deleted' });
   } catch (err) {
@@ -123,10 +108,12 @@ exports.deleteLesson = async (req, res) => {
 };
 exports.cloudinaryNotify = async (req, res) => {
   try {
-    const { public_id } = req.body;
+    const { public_id, file_id, fileId } = req.body;
+    const videoId = public_id || file_id || fileId;
+    if (!videoId) return res.sendStatus(400);
 
     await Lesson.findOneAndUpdate(
-      { videoPublicId: public_id },
+      { videoPublicId: videoId },
       { status: 'ready' }
     );
 
