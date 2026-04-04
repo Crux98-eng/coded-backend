@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Course = require('../models/Course');
+const Lessons = require('../models/Lesson');
 const { authenticate } = require('../middleware/auth');
 const {sendAdminApprovalEmail} = require('../services/mailing');
 const {sendUserApprovedEmail} = require('../services/mailing');
@@ -103,6 +105,8 @@ router.get('/profile', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+//block user
 router.post('/block/:uid' ,async(req, res)=>{
   try {
     const {uid}=req.params;
@@ -123,5 +127,30 @@ router.post('/block/:uid' ,async(req, res)=>{
     
   }
 })
+//get all users (for admin dashboard)
 
-module.exports = router;
+router.get('/all-users', async (req, res) => {
+  try {
+    const users = await User.find().lean();
+    res.json({ users });
+  }catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+//get count of active users, total users, and courses (for admin dashboard)
+router.get('/count-users_courses', async (req, res) => {
+  try {
+    const activeUsers = await User.countDocuments({ status: 'ACTIVE' });
+
+    const totalUserCount = await User.countDocuments();
+    const courseCount = await Course.countDocuments();
+    const lessonsCount = await Lessons.countDocuments();
+     const count ={ activeUsers, totalUserCount, courseCount ,lessonsCount}
+    res.json(count); 
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;  
