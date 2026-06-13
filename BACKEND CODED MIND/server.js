@@ -20,8 +20,10 @@ const port = process.env.PORT ;
 app.use(cors());
 app.use(express.json());
 
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI).then(() => {
+  
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('MongoDB connection error:', err);
@@ -40,5 +42,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
+  console.log("URI loaded:", !!process.env.MONGO_URI);
   console.log(`Server is running on http://localhost:${port}`);
 });

@@ -19,7 +19,7 @@ router.get('/un_approved_users',async(req, res)=>{
 
 router.get('/all_users',async(req, res)=>{
     try{
-        const allUsers = await User.lean();
+        const allUsers = await User.find().lean();
 
         res.json({users:allUsers}); 
     }catch(error){

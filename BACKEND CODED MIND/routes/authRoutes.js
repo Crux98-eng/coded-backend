@@ -10,13 +10,14 @@ const {sendUserEmailBlocking} = require('../services/mailing')
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
-  const { username, phone, plan} = req.body;
+  const { username, phone, plan,course_name} = req.body;
   
   const newUser ={
     email:email? email : '',
     name:username ? username: '',
     phone:phone? phone : '',
-    plan:plan?plan : "Premium"
+    plan:plan?plan : "Premium",
+    course_name:course_name?course_name :"Java"
   }
 try{
 
@@ -31,10 +32,10 @@ try{
     }
 
     // Create user with PENDING status
-    const user = new User({ uid, email, name:username, phone, status: 'PENDING', subscription: plan });
+    const user = new User({ uid, email, name:username, phone, status: 'PENDING', subscription: plan, course_name:course_name });
     //console.log('Saving user:', user);
     await user.save();
-    console.log('User saved successfully');
+    // console.log('User saved successfully');
      
     res.status(201).json({ message: 'User registered, pending approval', user });
     sendAdminApprovalEmail(newUser);
@@ -110,13 +111,12 @@ router.get('/profile', authenticate, async (req, res) => {
 router.post('/block/:uid' ,async(req, res)=>{
   try {
     const {uid}=req.params;
-    
     const user = await User.findOne({uid});
     if(!user){
       res.status(400).json({error:'user not found'})
       return;
     }
-    user.status='BLOCK';
+    user.status='BLOCKED';
    await user.save();
     res.json({message:'user blocked successfully', user});
    sendUserEmailBlocking(user.email);

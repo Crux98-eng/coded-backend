@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
   status: { type: String, enum: ['PENDING', 'ACTIVE', 'BLOCKED'], default: 'PENDING' },
   subscription: { type: String, default: 'basic' }, // e.g., 'basic', 'premium'
   createdAt: { type: Date, default: Date.now },
-  approvedAt: { type: Date, default: null }
+  approvedAt: { type: Date, default: null },
+  course_name:{type:String ,required: true, unique: false}
 });
 
 module.exports = mongoose.model('User', userSchema);
