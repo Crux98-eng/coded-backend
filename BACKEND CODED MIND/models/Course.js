@@ -9,7 +9,8 @@ const courseSchema = new mongoose.Schema({
   price: { type: Number, default: 0 },
   isPublished: { type: Boolean, default: false },
   instructorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  couseName :{type:String, required:true,default:'Java'}
 });
 
 module.exports = mongoose.model('Course', courseSchema);

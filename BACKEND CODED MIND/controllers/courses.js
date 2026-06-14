@@ -57,3 +57,14 @@ exports.deleteCourse = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+exports.getJava = async(req, res)=>{
+  try{
+    const java_couses = await Course.find({couseName:"Java"}).lean();
+
+    return res.status(200).json(java_couses)
+
+  }catch(err){
+   return res.status(500).json({ error: err.message });
+  }
+}
