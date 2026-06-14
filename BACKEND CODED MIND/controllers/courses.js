@@ -50,9 +50,11 @@ exports.updateCourse = async (req, res) => {
 
 exports.deleteCourse = async (req, res) => {
   try {
+
     const course = await Course.findByIdAndDelete(req.params.id);
     if (!course) return res.status(404).json({ error: 'Course not found' });
     return res.status(200).json({ message: 'Course deleted' });
+    
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -60,11 +62,21 @@ exports.deleteCourse = async (req, res) => {
 
 exports.getJava = async(req, res)=>{
   try{
-    const java_couses = await Course.find({couseName:"Java"}).lean();
 
+    const java_couses = await Course.find({couseName:"Java"}).lean();
     return res.status(200).json(java_couses)
 
   }catch(err){
    return res.status(500).json({ error: err.message });
+  }
+}
+exports.getC_courses = async(req,res)=>{
+  try{
+
+    const c_plusplus_courses = await Course.find({couseName:"C++"}).lean();
+    return res.status(200).json(c_plusplus_courses);
+
+  }catch(err){
+    return res.status(500).json({error:err.message})
   }
 }

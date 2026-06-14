@@ -21,7 +21,7 @@ router.post('/register', authenticate, async (req, res) => {
   }
 try{
 
-  if (!username) {
+  if (!username || !course_name || !phone) {
     return res.status(400).json({ error: 'Name is required.' });
   }
 
