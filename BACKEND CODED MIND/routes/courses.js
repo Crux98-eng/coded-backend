@@ -11,6 +11,6 @@ router.put('/:id', ctrl.updateCourse);
 router.delete('/:id', ctrl.deleteCourse);
 router.get('/all/courses', ctrl.getAllcourses);
 router.get('/related/java',ctrl.getJava);
-router.get('/related/c',getC_courses);
+router.get('/related/c',ctrl.getCplusPlus);
 
 module.exports = router;
