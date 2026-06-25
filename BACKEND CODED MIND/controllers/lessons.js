@@ -1,10 +1,14 @@
-const Lesson = require('../models/Lesson');
-const { uploadBuffer, deleteFile } = require('../services/imagekit');
+const Lesson = require("../models/Lesson");
+const { uploadBuffer, deleteFile } = require("../services/imagekit");
+const { Autjenticate, authenticate } = require("../middleware/auth");
+const { checkBlocked } = require("../middleware/checkBlocked");
 
 exports.createLesson = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "Video file is required (field: file)" });
+      return res
+        .status(400)
+        .json({ error: "Video file is required (field: file)" });
     }
 
     // Upload video directly (NO transformation)
@@ -15,8 +19,8 @@ exports.createLesson = async (req, res) => {
         folder: "lessons",
         tags: ["lesson-video"],
         useUniqueFileName: true,
-        responseFields: ["fileId", "url", "duration"]
-      }
+        responseFields: ["fileId", "url", "duration"],
+      },
     );
 
     const durationSeconds =
@@ -35,7 +39,8 @@ exports.createLesson = async (req, res) => {
       duration: durationSeconds,
       order: Number(req.body.order) || 0,
       isPreview: req.body.isPreview === "true" || req.body.isPreview === true,
-      isPublished: req.body.isPublished === "true" || req.body.isPublished === true,
+      isPublished:
+        req.body.isPublished === "true" || req.body.isPublished === true,
       status: "ready", // no conversion needed
     });
 
@@ -43,36 +48,35 @@ exports.createLesson = async (req, res) => {
       message: "Lesson uploaded successfully (MP4 direct)",
       lesson,
     });
-
   } catch (err) {
     console.error("Lesson upload error:", err);
 
     const status = err?.response?.statusCode;
 
-    return res.status(
-      status && status >= 400 && status < 600 ? status : 500
-    ).json({
-      error: err?.message || "Failed to create lesson",
-    });
+    return res
+      .status(status && status >= 400 && status < 600 ? status : 500)
+      .json({
+        error: err?.message || "Failed to create lesson",
+      });
   }
 };
 
 exports.listLessons = async (req, res) => {
-  try {
-    const filter = {};
-    if (req.query.courseId) filter.courseId = req.query.courseId;
-    if (req.query.moduleId) filter.moduleId = req.query.moduleId;
-    const lessons = await Lesson.find(filter).lean();
-    return res.status(200).json(lessons);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
+    try {
+      const filter = {};
+      
+      if (req.query.moduleId) filter.moduleId = req.query.moduleId;
+      const lessons = await Lesson.find(filter).lean();
+      return res.status(200).json(lessons);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  };
 
 exports.getLesson = async (req, res) => {
   try {
     const lesson = await Lesson.findById(req.params.id).lean();
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
     return res.status(200).json(lesson);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -81,10 +85,21 @@ exports.getLesson = async (req, res) => {
 
 exports.updateLesson = async (req, res) => {
   try {
-    const allowed = (({ title, description, duration, order, isPreview, isPublished }) => 
-      ({ title, description, duration, order, isPreview, isPublished }))(req.body);
-    const lesson = await Lesson.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true });
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+    const allowed = (({
+      title,
+      description,
+      duration,
+      order,
+      isPreview,
+      isPublished,
+    }) => ({ title, description, duration, order, isPreview, isPublished }))(
+      req.body,
+    );
+    const lesson = await Lesson.findByIdAndUpdate(req.params.id, allowed, {
+      new: true,
+      runValidators: true,
+    });
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
     return res.status(200).json(lesson);
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -94,14 +109,14 @@ exports.updateLesson = async (req, res) => {
 exports.deleteLesson = async (req, res) => {
   try {
     const lesson = await Lesson.findByIdAndDelete(req.params.id);
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
     // attempt to remove video from ImageKit if file id present
     try {
       if (lesson.videoPublicId) await deleteFile(lesson.videoPublicId);
     } catch (e) {
-      console.error('ImageKit delete error (lesson):', e.message || e);
+      console.error("ImageKit delete error (lesson):", e.message || e);
     }
-    return res.status(200).json({ message: 'Lesson deleted' });
+    return res.status(200).json({ message: "Lesson deleted" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -114,12 +129,12 @@ exports.cloudinaryNotify = async (req, res) => {
 
     await Lesson.findOneAndUpdate(
       { videoPublicId: videoId },
-      { status: 'ready' }
+      { status: "ready" },
     );
 
     res.sendStatus(200);
   } catch (err) {
-    console.error('Cloudinary notify error:', err);
+    console.error("Cloudinary notify error:", err);
     res.sendStatus(500);
   }
 };

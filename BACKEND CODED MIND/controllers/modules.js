@@ -53,7 +53,7 @@ exports.getAllJavaModules=async(req,res)=>{
 // get all c++ modules
 exports.getAllCPlusPlus = async(req, res)=>{
   try{
- const CModules =await Module.find({courseId:'6963762fbac2c08ed717164a'}).lean();
+ const CModules =await Module.find({courseId:'696375cdbac2c08ed7171648'}).lean();
  return res.status(200).json(CModules);
   }catch(err){
     res.status(500).json({err: err.message})

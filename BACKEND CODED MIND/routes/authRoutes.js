@@ -7,6 +7,7 @@ const { authenticate } = require('../middleware/auth');
 const {sendAdminApprovalEmail} = require('../services/mailing');
 const {sendUserApprovedEmail} = require('../services/mailing');
 const {sendUserEmailBlocking} = require('../services/mailing')
+
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;

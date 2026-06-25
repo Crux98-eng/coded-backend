@@ -114,3 +114,6 @@ temp/
 
 # OS generated files
 Thumbs.db
+*firebase-adminsdk*.json
+/coded-mind-inc-firebase-adminsdk-fbsvc-c51f0265e5.json
+coded-mind-inc-firebase-adminsdk-fbsvc-c51f0265e5
