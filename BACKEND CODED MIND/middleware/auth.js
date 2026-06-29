@@ -5,8 +5,8 @@ const admin = require("firebase-admin");
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
-  //  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-   const serviceAccount = require('../coded-mind-inc-firebase-adminsdk-fbsvc-c51f0265e5.json');
+   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  //  const serviceAccount = require('../coded-mind-inc-firebase-adminsdk-fbsvc-c51f0265e5.json');
   admin.initializeApp({
     // credential: admin.credential.applicationDefault(),
      credential: admin.credential.cert(serviceAccount),
