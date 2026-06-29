@@ -7,7 +7,7 @@ const { authenticate } = require('../middleware/auth');
 const {sendAdminApprovalEmail} = require('../services/mailing');
 const {sendUserApprovedEmail} = require('../services/mailing');
 const {sendUserEmailBlocking} = require('../services/mailing')
-
+const verifyFirebaseToken = require('../middleware/adminAuthVerification');
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
@@ -71,7 +71,7 @@ router.post('/login', authenticate, async (req, res) => {
 });
 
 // Admin approve: change status to ACTIVE + subscription
-router.post('/approve/:uid', async (req, res) => {
+router.post('/approve/:uid', verifyFirebaseToken, async (req, res) => {
   // In production, add admin authentication here
   try {
     const { uid } = req.params;
@@ -109,7 +109,7 @@ router.get('/profile', authenticate, async (req, res) => {
 });
 
 //block user
-router.post('/block/:uid' ,async(req, res)=>{
+router.post('/block/:uid',verifyFirebaseToken ,async(req, res)=>{
   try {
     const {uid}=req.params;
     const user = await User.findOne({uid});
@@ -129,8 +129,7 @@ router.post('/block/:uid' ,async(req, res)=>{
   }
 })
 //get all users (for admin dashboard)
-
-router.get('/all-users', async (req, res) => {
+router.get('/all-users', verifyFirebaseToken, async (req, res) => {
   try {
     const users = await User.find().lean();
     res.json({ users });
@@ -139,7 +138,7 @@ router.get('/all-users', async (req, res) => {
   }
 });
 //get count of active users, total users, and courses (for admin dashboard)
-router.get('/count-users_courses', async (req, res) => {
+router.get('/count-users_courses',verifyFirebaseToken, async (req, res) => {
   try {
     const activeUsers = await User.countDocuments({ status: 'ACTIVE' });
 

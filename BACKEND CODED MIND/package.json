@@ -13,7 +13,7 @@
     "@imagekit/nodejs": "^7.3.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^13.6.0",
     "imagekit": "^6.0.0",

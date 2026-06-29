@@ -7,12 +7,19 @@ const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 const { checkBlocked } = require("../middleware/checkBlocked");
 const {authenticate} = require('../middleware/auth')
+const verifyFirebaseToken  = require('../middleware/adminAuthVerification');
 
 // Creates a Lesson document: uploads video to ImageKit, then creates Lesson
-router.post("/", authenticate,upload.single("file"), ctrl.createLesson);
+//admin level routes
+router.post("/", verifyFirebaseToken, upload.single("file"), ctrl.createLesson);
+router.put("/:id", verifyFirebaseToken,ctrl.updateLesson);
+router.delete("/:id",verifyFirebaseToken, ctrl.deleteLesson);
+router.post("/cloudinary-notify",verifyFirebaseToken, ctrl.cloudinaryNotify);
+
+//user level  access
 router.get("/", authenticate,ctrl.listLessons);
 router.get("/:id",authenticate, ctrl.getLesson);
-router.put("/:id", authenticate,ctrl.updateLesson);
-router.delete("/:id",authenticate, ctrl.deleteLesson);
-router.post("/cloudinary-notify",authenticate, ctrl.cloudinaryNotify);
 module.exports = router;
+
+
+
