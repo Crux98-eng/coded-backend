@@ -69,13 +69,13 @@ router.post('/login', authenticate, async (req, res) => {
     // ACTIVE: allow access
    
     // console.log("Token received in login route:", token);
-    const userRole = await getUserRole({ token });
+    // const userRole = await getUserRole({ token });
     
-    if(!userRole.success){
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    // if(!userRole.success){
+    //   return res.status(401).json({ error: 'Invalid token' });
+    // }
 
-    res.json({ message: 'Login successful', user, userRole: userRole.role });
+    res.json({ message: 'Login successful', user, userRole: 'user' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
