@@ -4,9 +4,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY2,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY2,
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT2,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
 

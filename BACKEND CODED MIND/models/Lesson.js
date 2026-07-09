@@ -11,7 +11,19 @@ const lessonSchema = new mongoose.Schema({
   order: { type: Number, default: 0 },
   isPreview: { type: Boolean, default: false },
   isPublished: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  averageRating: {
+    type: Number,
+    default: 0
+  },
+  ratingSum: {
+    type: Number,
+    default: 0
+  },
+  totalRatings: {
+    type: Number,
+    default: 0
+  }
 });
 
 module.exports = mongoose.model('Lesson', lessonSchema);

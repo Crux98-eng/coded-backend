@@ -1,4 +1,6 @@
 const Lesson = require("../models/Lesson");
+const User = require("../models/User");
+const Rating = require("../models/VideoRatings");
 const { uploadBuffer, deleteFile } = require("../services/imagekit");
 const { Autjenticate, authenticate } = require("../middleware/auth");
 const { checkBlocked } = require("../middleware/checkBlocked");
@@ -121,6 +123,81 @@ exports.deleteLesson = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+exports.rateLesson = async (req, res) => {
+  try {
+    if (!req.user?.uid) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const lessonId = req.params.id;
+    const ratingValue = Number(req.body.rating);
+
+    if (!Number.isInteger(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      return res.status(400).json({ error: "Rating must be an integer between 1 and 5" });
+    }
+
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
+
+    const user = await User.findOne({ uid: req.user.uid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const existingRating = await Rating.findOne({
+      video: lesson._id,
+      user: user._id,
+    });
+
+    if (existingRating) {
+      if (existingRating.rating === ratingValue) {
+        return res.status(200).json({
+          message: "Rating already set",
+          lesson,
+        });
+      }
+
+      const difference = ratingValue - existingRating.rating;
+      lesson.ratingSum = Number(lesson.ratingSum || 0) + difference;
+      lesson.averageRating =
+        lesson.totalRatings > 0 ? lesson.ratingSum / lesson.totalRatings : 0;
+      existingRating.rating = ratingValue;
+
+      await Promise.all([existingRating.save(), lesson.save()]);
+
+      return res.status(200).json({
+        message: "Rating updated successfully",
+        lesson,
+      });
+    }
+
+    lesson.ratingSum = Number(lesson.ratingSum || 0) + ratingValue;
+    lesson.totalRatings = Number(lesson.totalRatings || 0) + 1;
+    lesson.averageRating =
+      lesson.totalRatings > 0 ? lesson.ratingSum / lesson.totalRatings : 0;
+
+    const newRating = await Rating.create({
+      video: lesson._id,
+      user: user._id,
+      rating: ratingValue,
+    });
+
+    await lesson.save();
+
+    return res.status(201).json({
+      message: "Rating submitted successfully",
+      lesson,
+      rating: newRating,
+    });
+  } catch (err) {
+    console.error("Lesson rating error:", err);
+    return res.status(500).json({ error: err.message || "Failed to rate lesson" });
+  }
+};
+
 exports.cloudinaryNotify = async (req, res) => {
   try {
     const { public_id, file_id, fileId } = req.body;

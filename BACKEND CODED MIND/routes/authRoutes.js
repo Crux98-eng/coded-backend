@@ -8,6 +8,7 @@ const {sendAdminApprovalEmail} = require('../services/mailing');
 const {sendUserApprovedEmail} = require('../services/mailing');
 const {sendUserEmailBlocking} = require('../services/mailing')
 const verifyFirebaseToken = require('../middleware/adminAuthVerification');
+const {getUserRole} = require('../utils/get_user_role');
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
@@ -57,14 +58,24 @@ try{
 router.post('/login', authenticate, async (req, res) => {
   try {
     const { uid } = req.user;
-
+    const authorization = req.headers.authorization;
+    const token = authorization && authorization.split(' ')[1];
     const user = await User.findOne({ uid });
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     // ACTIVE: allow access
-    res.json({ message: 'Login successful', user });
+   
+    // console.log("Token received in login route:", token);
+    const userRole = await getUserRole({ token });
+    
+    if(!userRole.success){
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    res.json({ message: 'Login successful', user, userRole: userRole.role });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -10,13 +10,13 @@ const verifyFirebaseToken = require('../middleware/adminAuthVerification');
 
 router.get('/', authenticate,ctrl.listCourses);
 router.get('/:id',authenticate, ctrl.getCourse);
-
 router.delete('/:id',authenticate, ctrl.deleteCourse);
-router.get('/all/courses',authenticate, ctrl.getAllcourses);
 router.get('/related/java',authenticate,ctrl.getJava);
 router.get('/related/c',authenticate,ctrl.getCplusPlus);
 
 // admin level routes
 router.put('/:id', verifyFirebaseToken,ctrl.updateCourse);
 router.post('/',verifyFirebaseToken, ctrl.createCourse);
+router.get('/all/courses',verifyFirebaseToken, ctrl.getAllcourses);
+
 module.exports = router;

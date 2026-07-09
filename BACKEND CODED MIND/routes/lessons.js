@@ -19,6 +19,7 @@ router.post("/cloudinary-notify",verifyFirebaseToken, ctrl.cloudinaryNotify);
 //user level  access
 router.get("/", authenticate,ctrl.listLessons);
 router.get("/:id",authenticate, ctrl.getLesson);
+router.post("/:id/rate", authenticate, ctrl.rateLesson);
 module.exports = router;
 
 
