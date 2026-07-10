@@ -1,9 +1,59 @@
 const Lesson = require("../models/Lesson");
 const User = require("../models/User");
 const Rating = require("../models/VideoRatings");
-const { uploadBuffer, deleteFile } = require("../services/imagekit");
-const { Autjenticate, authenticate } = require("../middleware/auth");
-const { checkBlocked } = require("../middleware/checkBlocked");
+const { deleteFile } = require("../services/imagekit");
+const { authenticate } = require("../middleware/auth");
+const { PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+
+const crypto = require("crypto");
+const r2 = require("../config/R2");
+
+const uploadLessonMediaToR2 = async (file) => {
+  if (!file) throw new Error("Video file is required");
+
+  const extension = file.originalname.includes(".")
+    ? file.originalname.slice(file.originalname.lastIndexOf("."))
+    : "";
+  const fileName = `${crypto.randomUUID()}${extension}`;
+  const key = `lessons/${fileName}`;
+  const publicBaseUrl = (process.env.R2_PUBLIC_URL || "").replace(/\/$/, "");
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME,
+    Key: key,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  });
+
+  await r2.send(command);
+
+  return {
+    key,
+    fileName,
+    url: `${publicBaseUrl}/${key}`,
+    mimeType: file.mimetype,
+    size: file.size,
+  };
+};
+
+const buildLessonPayload = (req, uploadMeta) => ({
+  courseId: req.body.courseId,
+  moduleId: req.body.moduleId,
+  title: req.body.title || uploadMeta.fileName,
+  description: req.body.description || "",
+  videoUrl: uploadMeta.url,
+  videoPublicId: uploadMeta.key,
+  duration: Number(req.body.duration) || 0,
+  order: Number(req.body.order) || 0,
+  isPreview: req.body.isPreview === "true" || req.body.isPreview === true,
+  isPublished: req.body.isPublished === "true" || req.body.isPublished === true,
+  status: "ready",
+  storageType: "r2",
+  storageKey: uploadMeta.key,
+  mimeType: uploadMeta.mimeType,
+  fileSize: uploadMeta.size,
+  fileName: uploadMeta.fileName,
+});
 
 exports.createLesson = async (req, res) => {
   try {
@@ -13,55 +63,52 @@ exports.createLesson = async (req, res) => {
         .json({ error: "Video file is required (field: file)" });
     }
 
-    // Upload video directly (NO transformation)
-    const uploadResult = await uploadBuffer(
-      req.file.buffer,
-      req.file.originalname,
-      {
-        folder: "lessons",
-        tags: ["lesson-video"],
-        useUniqueFileName: true,
-        responseFields: ["fileId", "url", "duration"],
-      },
-    );
-
-    const durationSeconds =
-      uploadResult?.duration ||
-      uploadResult?.metadata?.duration ||
-      Number(req.body.duration) ||
-      0;
-
-    const lesson = await Lesson.create({
-      courseId: req.body.courseId,
-      moduleId: req.body.moduleId,
-      title: req.body.title,
-      description: req.body.description || "",
-      videoUrl: uploadResult.url,
-      videoPublicId: uploadResult.fileId,
-      duration: durationSeconds,
-      order: Number(req.body.order) || 0,
-      isPreview: req.body.isPreview === "true" || req.body.isPreview === true,
-      isPublished:
-        req.body.isPublished === "true" || req.body.isPublished === true,
-      status: "ready", // no conversion needed
-    });
+    const uploadMeta = await uploadLessonMediaToR2(req.file);
+    const lesson = await Lesson.create(buildLessonPayload(req, uploadMeta));
 
     return res.status(201).json({
-      message: "Lesson uploaded successfully (MP4 direct)",
+      message: "Lesson uploaded successfully to Cloudflare R2",
       lesson,
     });
   } catch (err) {
     console.error("Lesson upload error:", err);
 
-    const status = err?.response?.statusCode;
-
-    return res
-      .status(status && status >= 400 && status < 600 ? status : 500)
-      .json({
-        error: err?.message || "Failed to create lesson",
-      });
+    return res.status(500).json({
+      error: err?.message || "Failed to create lesson",
+    });
   }
 };
+
+exports.uploadMedia = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Video file is required (field: file)" });
+    }
+
+    const uploadMeta = await uploadLessonMediaToR2(req.file);
+    const lesson = await Lesson.create(buildLessonPayload(req, uploadMeta));
+
+    return res.status(201).json({
+      message: "Media uploaded successfully",
+      lesson,
+      upload: {
+        key: uploadMeta.key,
+        url: uploadMeta.url,
+      },
+    });
+  } catch (error) {
+    console.error("Lesson media upload error:", error);
+
+    return res.status(500).json({
+      message: "Upload failed",
+      error: error?.message || "Unknown error",
+    });
+  }
+};
+
+
+
+
 
 exports.listLessons = async (req, res) => {
     try {
@@ -112,12 +159,21 @@ exports.deleteLesson = async (req, res) => {
   try {
     const lesson = await Lesson.findByIdAndDelete(req.params.id);
     if (!lesson) return res.status(404).json({ error: "Lesson not found" });
-    // attempt to remove video from ImageKit if file id present
+
     try {
-      if (lesson.videoPublicId) await deleteFile(lesson.videoPublicId);
+      if (lesson.storageKey) {
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: lesson.storageKey,
+        });
+        await r2.send(deleteCommand);
+      } else if (lesson.videoPublicId) {
+        await deleteFile(lesson.videoPublicId);
+      }
     } catch (e) {
-      console.error("ImageKit delete error (lesson):", e.message || e);
+      console.error("Media delete error (lesson):", e.message || e);
     }
+
     return res.status(200).json({ message: "Lesson deleted" });
   } catch (err) {
     return res.status(500).json({ error: err.message });

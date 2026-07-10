@@ -10,6 +10,7 @@
   "author": "eric",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1084.0",
     "@imagekit/nodejs": "^7.3.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",

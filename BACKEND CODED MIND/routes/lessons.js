@@ -15,7 +15,7 @@ router.post("/", verifyFirebaseToken, upload.single("file"), ctrl.createLesson);
 router.put("/:id", verifyFirebaseToken,ctrl.updateLesson);
 router.delete("/:id",verifyFirebaseToken, ctrl.deleteLesson);
 router.post("/cloudinary-notify",verifyFirebaseToken, ctrl.cloudinaryNotify);
-
+router.post("/media",verifyFirebaseToken, upload.single("file"), ctrl.uploadMedia);
 //user level  access
 router.get("/", authenticate,ctrl.listLessons);
 router.get("/:id",authenticate, ctrl.getLesson);
