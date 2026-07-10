@@ -78,7 +78,7 @@ exports.createLesson = async (req, res) => {
     });
   }
 };
-
+//the uploadMedia function is used to upload media files (like videos) to Cloudflare R2 storage and create a corresponding Lesson document in the database. It checks for the presence of a file in the request, uploads it to R2, and then creates a Lesson entry with the relevant metadata. If any errors occur during this process, it responds with an appropriate error message.
 exports.uploadMedia = async (req, res) => {
   try {
     if (!req.file) {
