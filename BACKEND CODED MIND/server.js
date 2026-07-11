@@ -8,6 +8,7 @@ const coursesRoutes = require('./routes/courses');
 const modulesRoutes = require('./routes/modules');
 const lessonsRoutes = require('./routes/lessons');
 const materialsRoutes = require('./routes/materials');
+const suggestionsRoutes = require('./routes/suggestions');
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/courses', coursesRoutes);
 app.use('/modules', modulesRoutes);
 app.use('/lessons', lessonsRoutes);
 app.use('/materials', materialsRoutes);
+app.use('/suggestions', suggestionsRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend for Coded Mind - REGISTER -> APPROVE -> LOGIN flow');
