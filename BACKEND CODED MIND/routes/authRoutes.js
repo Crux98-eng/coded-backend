@@ -9,6 +9,7 @@ const {sendUserApprovedEmail} = require('../services/mailing');
 const {sendUserEmailBlocking} = require('../services/mailing')
 const verifyFirebaseToken = require('../middleware/adminAuthVerification');
 const {getUserRole} = require('../utils/get_user_role');
+const { sendUserInvoice } = require('../services/mailing');
 // Register: After Firebase Auth creates user, backend sets status PENDING
 router.post('/register', authenticate, async (req, res) => {
   const { uid, email } = req.user;
@@ -40,7 +41,10 @@ try{
     // console.log('User saved successfully');
      
     res.status(201).json({ message: 'User registered, pending approval', user });
+    // send the email to the admin
     sendAdminApprovalEmail(newUser);
+    // send the email to the user with the invoice
+    sendUserInvoice(email);
   } catch (error) {
     console.error('Registration error:', error.message);
     res.status(500).json({ error: error.message });

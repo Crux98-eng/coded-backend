@@ -16,6 +16,7 @@ export const sendAdminApprovalEmail = async (user) => {
         <p><strong>Email:</strong> ${user.email}</p>
         <p><strong>Phone:</strong> ${user.phone}</p>
         <p><strong>Subdcription:</strong> ${user.plan}</p>
+        <p><strong>Course Name:</strong> ${user.course_name}</p>
         <p>Status: <b>Waiting Approval</b></p>
       `,
     });
@@ -40,6 +41,27 @@ export const sendUserApprovedEmail = async (userEmail) => {
     console.error("User email error:", error);
   }
 };
+
+export const sendUserInvoice = async (userEmail) => {
+  try {
+    await resend.emails.send({
+      from: "HAUSHALT <onboarding@resend.dev>", // same sender
+      to: [userEmail],
+      subject: "Payment Invoice",
+      html: `
+        <h2>Please make payment to the following details and complete your registration:</h2>
+        <p><strong>Amount:</strong> K150</p>
+        <p><strong>Airtel Money:</strong> 0775793777</p>
+        <p><strong>MTN Money:</strong> +260760067551</p>
+        <p>Please send us proof of payment via email or WhatsApp.</p>
+        <p>Thank you for your cooperation.</p>
+      `,
+    });
+  } catch (error) {
+    console.error("User email error:", error);
+  }
+};
+
 export const sendUserEmailBlocking = async (userEmail) => {
   try {
     await resend.emails.send({
