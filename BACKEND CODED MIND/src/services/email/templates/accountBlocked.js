@@ -7,8 +7,8 @@ import Layout from './layout.js';
  * @param {{name?: string}} props
  */
 export default function AccountBlockedEmail({ name = 'there' }) {
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
-  const supportEmail = process.env.SUPPORT_EMAIL || 'support@example.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
+  const supportEmail = process.env.SUPPORT_EMAIL || 'sakalaeric87@gmail.com.com';
 
   return React.createElement(Layout, null,
     React.createElement(Section, { style: { textAlign: 'center', padding: '0 0 24px' } },

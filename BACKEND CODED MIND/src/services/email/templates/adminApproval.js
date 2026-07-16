@@ -7,7 +7,7 @@ import Layout from './layout.js';
  * @param {{name?: string,email?: string,phone?: string,course?: string,plan?: string}} props
  */
 export default function AdminApprovalEmail({ name = 'Unknown', email = 'Unavailable', phone = 'Unavailable', course = 'Unknown', plan = 'Not specified' }) {
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
 
   return React.createElement(Layout, null,
     React.createElement(Section, { style: { padding: '0 0 24px' } },

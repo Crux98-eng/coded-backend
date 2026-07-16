@@ -6,9 +6,9 @@ import { Html, Body, Container, Section, Text } from '@react-email/components';
  * @param {{children: React.ReactNode}} props
  */
 export default function Layout({ children }) {
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
   const appName = process.env.APP_NAME || 'Coded Mastery';
-  const supportEmail = process.env.SUPPORT_EMAIL || 'support@example.com';
+  const supportEmail = process.env.SUPPORT_EMAIL || 'sakalaeric87@gmail.com';
   const year = new Date().getFullYear();
 
   return React.createElement(Html, null,

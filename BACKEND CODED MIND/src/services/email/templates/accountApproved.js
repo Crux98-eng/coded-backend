@@ -7,7 +7,7 @@ import Layout from './layout.js';
  * @param {{name?: string}} props
  */
 export default function AccountApprovedEmail({ name = 'there' }) {
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
 
   return React.createElement(Layout, null,
     React.createElement(Section, { style: { textAlign: 'center', padding: '0 0 24px' } },

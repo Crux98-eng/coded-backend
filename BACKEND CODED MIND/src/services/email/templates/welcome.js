@@ -7,7 +7,7 @@ import Layout from './layout.js';
  * @param {{name?: string}} props
  */
 export default function WelcomeEmail({ name = 'there' }) {
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
 
   return React.createElement(Layout, null,
     React.createElement(Section, { style: { padding: '0 0 24px' } },

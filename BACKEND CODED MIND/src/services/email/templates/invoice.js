@@ -10,8 +10,8 @@ export default function InvoiceEmail({ name = 'Student', course = 'Selected cour
   const airtelMoney = process.env.AIRTEL_MONEY || '0775793777';
   const mtnMoney = process.env.MTN_MONEY || '+260760067551';
   const whatsappNumber = process.env.WHATSAPP_NUMBER || '260760067551';
-  const supportEmail = process.env.SUPPORT_EMAIL || 'support@example.com';
-  const appUrl = process.env.APP_URL || 'https://codedmastery.example.com';
+  const supportEmail = process.env.SUPPORT_EMAIL || 'sakalaeric87@gmail.com';
+  const appUrl = process.env.APP_URL || 'https://codedmastery.com';
   const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}`;
 
   return React.createElement(Layout, null,
