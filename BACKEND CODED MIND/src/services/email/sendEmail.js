@@ -17,29 +17,73 @@ export default async function sendEmail({ to, subject, react, html, from }) {
   const sender = from || process.env.EMAIL_FROM;
 
   if (!sender) {
+    console.error('[email] missing EMAIL_FROM');
     throw new Error('Missing environment variable: EMAIL_FROM');
   }
 
   const recipients = typeof to === 'string' ? [to] : Array.isArray(to) ? to : [];
 
   if (recipients.length === 0) {
+    console.error('[email] invalid recipients', { to });
     throw new Error('Invalid email recipient. Provide `to` as a string or non-empty array.');
   }
 
-  const body = react ? render(react) : html;
+  // Render React template if provided, otherwise use provided HTML.
+  let body;
+  try {
+    if (react) {
+      body = render(react);
+    } else {
+      body = html;
+    }
+  } catch (renderError) {
+    console.error('[email] render error', renderError);
+    throw new Error(`Email render failed: ${renderError?.message ?? String(renderError)}`);
+  }
 
   if (!body) {
+    console.error('[email] empty body after render/fallback');
     throw new Error('Email body is missing. Provide either `react` or `html`.');
   }
 
+  // Debug log: small preview and metadata
   try {
-    return await resend.emails.send({
+    console.debug('[email] send payload', {
+      from: sender,
+      to: recipients,
+      subject,
+      bodyPreview: typeof body === 'string' ? `${body.slice(0, 240)}${body.length > 240 ? '...' : ''}` : undefined,
+    });
+  } catch (logErr) {
+    console.error('[email] logging failed', logErr);
+  }
+
+  try {
+    const response = await resend.emails.send({
       from: sender,
       to: recipients,
       subject,
       html: body,
     });
+
+    // Informational log of success with limited details.
+    try {
+      console.info('[email] sent', { to: recipients, subject, id: response?.id ?? null });
+    } catch (infoErr) {
+      console.info('[email] sent (logging failed)');
+    }
+
+    return response;
   } catch (error) {
+    // Detailed error logging for troubleshooting.
+    console.error('[email] send error', {
+      to: recipients,
+      subject,
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+      data: error?.response ?? error?.body ?? null,
+    });
+
     const message = error?.message ?? String(error);
     throw new Error(`Email send failed for ${recipients.join(', ')}: ${message}`);
   }

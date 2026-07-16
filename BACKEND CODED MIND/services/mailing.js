@@ -10,7 +10,11 @@ let emailServicePromise = null;
 function getEmailService() {
   if (!emailServicePromise) {
     const esmPath = pathToFileURL(join(__dirname, '../src/services/email/index.js')).href;
-    emailServicePromise = import(esmPath);
+    console.debug('[mailing wrapper] importing ESM service at', esmPath);
+    emailServicePromise = import(esmPath).catch(err => {
+      console.error('[mailing wrapper] failed to import ESM email service', err);
+      throw err;
+    });
   }
 
   return emailServicePromise;
@@ -18,11 +22,18 @@ function getEmailService() {
 
 async function safeCall(methodName, payload) {
   try {
+    console.debug('[mailing wrapper] calling', methodName, 'with payload', payload ? (typeof payload === 'object' ? JSON.stringify(payload) : payload) : null);
     const service = await getEmailService();
-    return await service[methodName](payload);
+    const result = await service[methodName](payload);
+    console.debug('[mailing wrapper] result', methodName, result);
+    return result;
   } catch (error) {
     const message = error?.message ?? String(error);
-    console.error(`Email service error (${methodName}):`, message);
+    console.error(`[mailing wrapper] Email service error (${methodName}):`, {
+      message,
+      stack: error?.stack,
+    });
+    // Return a structured error object so callers won't throw unexpectedly.
     return { success: false, error: message };
   }
 }
