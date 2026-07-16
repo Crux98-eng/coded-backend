@@ -14,11 +14,18 @@ import { render } from '@react-email/render';
  * @returns {Promise<unknown>} - Resend email API response.
  */
 export default async function sendEmail({ to, subject, react, html, from }) {
-  const sender = from || process.env.EMAIL_FROM;
+  const rawSender = from ?? process.env.EMAIL_FROM;
+  const sender = typeof rawSender === 'string' ? rawSender.trim().replace(/^"|"$/g, '').trim() : rawSender;
 
   if (!sender) {
-    console.error('[email] missing EMAIL_FROM');
+    console.error('[email] missing or empty EMAIL_FROM', { rawSender });
     throw new Error('Missing environment variable: EMAIL_FROM');
+  }
+
+  const senderPattern = /^([^<>]+<[^<>\s]+@[^<>\s]+\.[^<>\s]+>|[^<>\s]+@[^<>\s]+\.[^<>\s]+)$/;
+  if (!senderPattern.test(sender)) {
+    console.error('[email] invalid from format', { rawSender, sender });
+    throw new Error('Invalid EMAIL_FROM format. Expected `email@example.com` or `Name <email@example.com>`.');
   }
 
   const recipients = typeof to === 'string' ? [to] : Array.isArray(to) ? to : [];
