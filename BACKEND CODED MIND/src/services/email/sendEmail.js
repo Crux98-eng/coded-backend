@@ -39,18 +39,21 @@ export default async function sendEmail({ to, subject, react, html, from }) {
   let body;
   try {
     if (react) {
-      body = render(react);
-    } else {
+      body = await render(react);
+    } else if (typeof html === 'string') {
       body = html;
+    } else if (html != null) {
+      console.error('[email] invalid html body type', { html, type: typeof html });
+      throw new Error('Invalid html body. Provide `html` as a string.');
     }
   } catch (renderError) {
     console.error('[email] render error', renderError);
     throw new Error(`Email render failed: ${renderError?.message ?? String(renderError)}`);
   }
 
-  if (!body) {
-    console.error('[email] empty body after render/fallback');
-    throw new Error('Email body is missing. Provide either `react` or `html`.');
+  if (!body || typeof body !== 'string') {
+    console.error('[email] empty or invalid body after render/fallback', { body, type: typeof body });
+    throw new Error('Email body is missing or invalid. Provide either `react` or `html` as a string.');
   }
 
   // Debug log: small preview and metadata
